@@ -156,6 +156,9 @@ def main():
 	A simple demo of computer vision with Tensor Flow Keras
 	Loads images, preprocess images, builds and trains a nerual network
 	Model is saved as a YAML file for structure and h5 for weights
+
+	Args
+		path to training data directory
 	"""
 	# locate training data
 	if (len(sys.argv) != 2):
