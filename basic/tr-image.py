@@ -163,6 +163,7 @@ def main():
 	# locate training data
 	if (len(sys.argv) != 2):
 		print("Argument required: training directory")
+		quit()
 	train_data_dir = path.join(ROOT_PATH, sys.argv[1])
 
 	# load training data
