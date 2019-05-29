@@ -19,13 +19,15 @@ import sys
 import numpy as np
 
 # Define defaults
-EPOCHS = 10					# how many times to train
+EPOCHS = 20					# how many times to train
 BATCH_SIZE = 32 			# size of a training batch
 LEARN_RATE = 0.001 			# learning rate for optimizer
-ROOT_PATH = "/home/"	# modify path to data directory
+ROOT_PATH = "/home/"		# modify path to data directory
 IMG_DIM = 28				# DxD size of square image
 NUM_INTERNAL_LAYERS = 1		# number of layers, excluding first and last
 INT_LAYER_SIZE = -1			# size of internal layer, -1 for default
+FNAME = 'model'				# filename to save outputs as
+
 
 def load_data(data_directory):
 	"""
@@ -58,6 +60,7 @@ def load_data(data_directory):
 
 	return images, labels
 
+
 def preprocess(images):
 	"""
 	Standardize images so they are ready for training
@@ -80,6 +83,7 @@ def preprocess(images):
 
 	return p_images
 
+
 def train(p_images, labels):
 	"""
 	Constructs and trains a dense neural network.
@@ -95,7 +99,7 @@ def train(p_images, labels):
 		labels (categorical): labels of images in a one-hot matrix
 
 	Returns
-		model (keras.Sequential): a trained model
+		model (keras model): a trained model
 
 	"""
 
@@ -123,14 +127,39 @@ def train(p_images, labels):
 
 	return model
 
-def save_model():
-	print("Model saved: ")
+
+def save(model):
+	"""
+	Save the model as a YAML file and a weight files
+
+	Args
+		fname (str): filename
+		model (keras model): the trained model to save
+	"""
+	# print a summary
+	print(model.summary())
+
+	# save structure
+	model_yaml = model.to_yaml()
+	with open(FNAME+'.yaml', 'w') as yaml_file:
+		yaml_file.write(model_yaml)
+	# save weights
+	model.save_weights(FNAME+'.h5')
+
+	# confirm
+	print('Model configuration saved as ' + FNAME +'.yaml')
+	print('Model weights saved as ' + FNAME +'.h5')
+
 
 def main():
+	"""
+	A simple demo of computer vision with Tensor Flow Keras
+	Loads images, preprocess images, builds and trains a nerual network
+	Model is saved as a YAML file for structure and h5 for weights
+	"""
 	# locate training data
 	if (len(sys.argv) != 2):
 		print("Argument required: training directory")
-
 	train_data_dir = path.join(ROOT_PATH, sys.argv[1])
 
 	# load training data
@@ -147,9 +176,10 @@ def main():
 	# train model
 	print("Beginning training")
 	model = train(p_images, labels)
+	print("Training complete")
 
 	# save model
-
+	save(model)
 
 if __name__ == '__main__':
 	main()
