@@ -9,17 +9,32 @@
 ## May 2019
 ########################################################
 import tensorflow as tf
-from skimage import data
+from skimage import data, transform
+from skimage.color import rgb2gray
 from os import path, listdir
 import sys
+import numpy as np
 
 # Define defaults
 EPOCHS = 40 # how many times to train
 BATCH_SIZE = 32 # size of a training batch
 LEARN_RATE = 0.001 # learning rate for optimizer
 ROOT_PATH = "/tmp/data/" # modify path to data directory
+IMG_DIM = 28 # DxD size of square image
 
+# load the training data from the given directory
+# 
 def load_data(data_directory):
+	"""
+	Load images from given directory
+
+	Args:
+		data_directory (str): directory that holds directories of images
+
+	Returns:
+		images (list): list of images
+		lables (list); list of corresponding labesls
+	"""
 	# create list of all directories
 	direct = [d for d in listdir(data_directory)
 		if path.isdir(path.join(data_directory, d))]
@@ -36,9 +51,28 @@ def load_data(data_directory):
 
 		for f in file_names:
 			images.append(data.imread(f))
-			labels.append(int(d)) # this only works if the directy is a number
+			labels.append(int(d)) # this only works if the directory is a number
 
 	return images, labels
+
+def preprocess(images):
+	"""
+	Standardize images so they are ready for training
+
+	Args
+		images (list): images to be processed
+
+	Returns
+		p_images (list): processed images
+	"""
+	
+	# resize the image
+	p_images = [transform.resize(image, (IMG_DIM, IMG_DIM)) for image in images]
+
+	# convert to grayscale and unravel
+	p_images = [rgb2gray(np.array(image)).ravel() for image in p_images]
+
+	return p_images
 
 def train():
 	print("Training Complete")
@@ -58,7 +92,11 @@ def main():
 	images, labels = load_data(train_data_dir)
 	print(len(images), 'images loaded')
 
-	# reformat images
+	# preprocess images
+	p_images = preprocess(images)
+
+	# tf keras categorization of labels
+	labels = tf.keras.utils.to_categorical(np.array(labels))
 
 	# train model
 
