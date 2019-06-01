@@ -11,7 +11,8 @@
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.utils import to_categorical
-from tensorflow.keras import layers, optimizers
+from tensorflow.keras import optimizers
+from tensorflow.keras.layers import Convolution2D, MaxPooling2D, Flatten, Dense
 from skimage import data, transform
 from skimage.color import rgb2gray
 from os import path, listdir
@@ -24,7 +25,7 @@ BATCH_SIZE = 32 			# size of a training batch
 LEARN_RATE = 0.001 			# learning rate for optimizer
 ROOT_PATH = "/home/"		# modify path to data directory
 IMG_DIM = 28				# DxD size of square image
-NUM_INTERNAL_LAYERS = 1		# number of layers, excluding first and last
+NUM_INTERNAL_LAYERS = 1		# number of coputational layers
 INT_LAYER_SIZE = -1			# size of internal layer, -1 for default
 FNAME = 'model'				# filename to save outputs as
 
@@ -75,9 +76,6 @@ def preprocess(images):
 	# resize the image
 	p_images = [transform.resize(image, (IMG_DIM, IMG_DIM)) for image in images]
 
-	# convert to grayscale and unravel
-	p_images = [rgb2gray(np.array(image)).ravel() for image in p_images]
-
 	# needs to be an array
 	p_images = np.array(p_images)
 
@@ -111,11 +109,15 @@ def train(p_images, labels):
 
 	# first layer
 	model = keras.Sequential()
-	model.add(layers.Dense(pix, activation='relu'))
+	model.add(Convolution2D(32, 3, 3, activation='relu'))
+	# pool to reduce number of features
+	model.add(MaxPooling2D(pool_size=(2,2)))
+	# flatten into single vector
+	model.add(Flatten())
 	# internal layers
-	[model.add(layers.Dense(int_size, activation='reul')) for i in range(INT_LAYER_SIZE)]
+	[model.add(Dense(int_size, activation='reul')) for i in range(INT_LAYER_SIZE)]
 	# last layer
-	model.add(layers.Dense(num_categories, activation='softmax'))
+	model.add(Dense(num_categories, activation='softmax'))
 
 	# configure
 	model.compile(optimizer=keras.optimizers.Adam(lr=LEARN_RATE),
