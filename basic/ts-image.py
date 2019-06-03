@@ -53,9 +53,9 @@ def load_data(data_directory):
 	return images, labels
 
 
-def preprocess(images):
+def preprocess(images, labels):
 	"""
-	Standardize images so they are ready for testing
+	Standardize images so they are ready for training
 
 	Args
 		images (list): images to be processed
@@ -70,7 +70,10 @@ def preprocess(images):
 	# needs to be an array
 	p_images = np.array(p_images)
 
-	return p_images
+	# tf keras categorization of labels
+	p_labels = tf.keras.utils.to_categorical(np.array(labels))
+
+	return p_images, p_labels
 
 
 def open_model(name):
@@ -129,10 +132,7 @@ def main():
 	print(len(images), 'images loaded')
 
 	# preprocess images
-	p_images = preprocess(images)
-
-	# tf keras categorization of labels
-	labels = tf.keras.utils.to_categorical(np.array(labels))
+	p_images, labels = preprocess(images, labels)
 
 	# open model
 	model = open_model(sys.argv[2])
