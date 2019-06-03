@@ -11,7 +11,7 @@
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.utils import to_categorical
-from tensorflow.keras import layers, optimizers
+from tensorflow.keras.models import model_from_yaml
 from skimage import data, transform
 from skimage.color import rgb2gray
 from os import path, listdir
@@ -67,20 +67,43 @@ def preprocess(images):
 	# resize the image
 	p_images = [transform.resize(image, (IMG_DIM, IMG_DIM)) for image in images]
 
-	# convert to grayscale and unravel
-	p_images = [rgb2gray(np.array(image)).ravel() for image in p_images]
-
 	# needs to be an array
 	p_images = np.array(p_images)
 
 	return p_images
 
 
-def open_model():
+def open_model(name):
+	"""
+	Opens and returns the previously trained model
+	Require YAML and h5 files
+
+	Args
+		name (str): Name of model
+	Return
+		model (keras model): loaded neural network
+	"""
+
+	# structure of model
+	model = keras.models.load_model(name)
+	print(model.summary)
+	return model
 
 
-def predict():
-	
+def test(images, labels, model):
+	"""
+	Tests the model against the testing set
+
+	Args
+		images (list): processed images
+		labels (keras categorical): accompanying labels
+		model (keras model): the loaded model
+	Return
+		result (list): loss and accuracy of evaluation
+	"""
+	result = model.evaluate(images, labels)
+	return result
+
 
 def main():
 	"""
@@ -91,8 +114,13 @@ def main():
 	Args
 	"""
 	# locate testing data
-	if (len(sys.argv) != 2):
+	if len(sys.argv) == 1:
 		print("Argument required: testing directory")
+	if len(sys.argv) == 2:
+		print("Argument required: model name")
+	if (len(sys.argv) !=3):
+		print("Wrong number of arguments")
+		quit()
 	test_data_dir = path.join(ROOT_PATH, sys.argv[1])
 
 	# load testing data
@@ -103,9 +131,16 @@ def main():
 	# preprocess images
 	p_images = preprocess(images)
 
-	# open model
-	model = open_model()
+	# tf keras categorization of labels
+	labels = tf.keras.utils.to_categorical(np.array(labels))
 
+	# open model
+	model = open_model(sys.argv[2])
+
+	# test
+	print('Evaluating model...')
+	result = test(p_images, labels, model)
+	print('test loss, test acc: ', result)
 
 
 if __name__ == '__main__':

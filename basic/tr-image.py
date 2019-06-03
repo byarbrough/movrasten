@@ -141,16 +141,11 @@ def save(model):
 	# print a summary
 	print(model.summary())
 
-	# save structure
-	model_yaml = model.to_yaml()
-	with open(FNAME+'.yaml', 'w') as yaml_file:
-		yaml_file.write(model_yaml)
-	# save weights
-	model.save_weights(FNAME+'.h5')
+	# save model
+	model.save(FNAME+'.h5')
 
 	# confirm
-	print('Model configuration saved as ' + FNAME +'.yaml')
-	print('Model weights saved as ' + FNAME +'.h5')
+	print('Model saved as ' + FNAME +'.h5')
 
 
 def main():
