@@ -13,7 +13,7 @@ from skimage import data, transform
 import sys
 import numpy as np
 
-ROOT_PATH = "/home/"		# modify path to data directory
+ROOT_PATH = ""		# modify path to data directory
 IMG_DIM = 28				# DxD size of square image
 
 def load_data(data_directory):

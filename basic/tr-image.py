@@ -22,11 +22,12 @@ import numpy as np
 EPOCHS = 20					# how many times to train
 BATCH_SIZE = 32 			# size of a training batch
 LEARN_RATE = 0.001 			# learning rate for optimizer
-ROOT_PATH = "/home/"		# modify path to data directory
+ROOT_PATH = ""		# modify path to data directory
 IMG_DIM = 28				# DxD size of square image
 NUM_INTERNAL_LAYERS = 1		# number of coputational layers
 INT_LAYER_SIZE = -1			# size of internal layer, -1 for default
 FNAME = 'model'				# filename to save outputs as
+OPTIMIZER = True			# include the optimizer when saving
 
 
 def load_data(data_directory):
@@ -144,7 +145,10 @@ def save(model):
 	print(model.summary())
 
 	# save model
-	model.save(FNAME+'.h5')
+	if OPTIMIZER:
+		model.save(FNAME+'.h5', include_optimizer=True)
+	else:
+		model.save(FNAME+'.h5', include_optimizer=False)
 
 	# confirm
 	print('Model saved as ' + FNAME +'.h5')
@@ -171,7 +175,7 @@ def main():
 	print(len(images), 'images loaded')
 
 	# preprocess
-	p_images, labels = preprocess(images, labesls)
+	p_images, labels = preprocess(images, labels)
 
 	# train model
 	print("Beginning training")
