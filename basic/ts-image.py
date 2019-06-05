@@ -1,5 +1,5 @@
 #######################################################
-## Simple file for predicting with Tensor Flow Neural Net
+## Simple file for testing with Tensor Flow Neural Net
 ## Uses Keras
 ##
 ## Testing images should be in a single directory
@@ -11,9 +11,7 @@
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.utils import to_categorical
-from tensorflow.keras.models import model_from_yaml
 from skimage import data, transform
-from skimage.color import rgb2gray
 from os import path, listdir
 import sys
 import numpy as np

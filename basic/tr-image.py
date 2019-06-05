@@ -14,7 +14,6 @@ from tensorflow.keras.utils import to_categorical
 from tensorflow.keras import optimizers
 from tensorflow.keras.layers import Convolution2D, MaxPooling2D, Flatten, Dense
 from skimage import data, transform
-from skimage.color import rgb2gray
 from os import path, listdir
 import sys
 import numpy as np
@@ -62,7 +61,7 @@ def load_data(data_directory):
 	return images, labels
 
 
-def preprocess(images):
+def preprocess(images, labels):
 	"""
 	Standardize images so they are ready for training
 
@@ -79,7 +78,10 @@ def preprocess(images):
 	# needs to be an array
 	p_images = np.array(p_images)
 
-	return p_images
+	# tf keras categorization of labels
+	p_labels = tf.keras.utils.to_categorical(np.array(labels))
+
+	return p_images, p_labels
 
 
 def train(p_images, labels):
@@ -168,11 +170,8 @@ def main():
 	images, labels = load_data(train_data_dir)
 	print(len(images), 'images loaded')
 
-	# preprocess images
-	p_images = preprocess(images)
-
-	# tf keras categorization of labels
-	labels = tf.keras.utils.to_categorical(np.array(labels))
+	# preprocess
+	p_images, labels = preprocess(images, labesls)
 
 	# train model
 	print("Beginning training")
