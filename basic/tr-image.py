@@ -22,7 +22,7 @@ import numpy as np
 EPOCHS = 20					# how many times to train
 BATCH_SIZE = 32 			# size of a training batch
 LEARN_RATE = 0.001 			# learning rate for optimizer
-ROOT_PATH = ""		# modify path to data directory
+ROOT_PATH = ""				# modify path to data directory
 IMG_DIM = 28				# DxD size of square image
 NUM_INTERNAL_LAYERS = 1		# number of coputational layers
 INT_LAYER_SIZE = -1			# size of internal layer, -1 for default
@@ -118,11 +118,11 @@ def train(p_images, labels):
 	# flatten into single vector
 	model.add(Flatten())
 	# internal layers
-	[model.add(Dense(int_size, activation='reul')) for i in range(INT_LAYER_SIZE)]
+	[model.add(Dense(int_size, activation='relu')) for i in range(NUM_INTERNAL_LAYERS)]
 	# last layer
 	model.add(Dense(num_categories, activation='softmax'))
 
-	# configure
+	# compile
 	model.compile(optimizer=keras.optimizers.Adam(lr=LEARN_RATE),
 		loss='categorical_crossentropy',
 		metrics=['accuracy'])
