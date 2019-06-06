@@ -142,7 +142,7 @@ def save(model):
 		model (keras model): the trained model to save
 	"""
 	# print a summary
-	print(model.summary())
+	print(model.summary)
 
 	# save model
 	if OPTIMIZER:

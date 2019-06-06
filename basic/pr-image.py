@@ -77,7 +77,9 @@ def open_model(name):
 	"""
 
 	# structure of model
+	print('Opening', name)
 	model = keras.models.load_model(name)
+	print('Opened', name)
 	print(model.summary)
 	return model
 
