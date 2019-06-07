@@ -34,12 +34,12 @@ def load_data(data_directory):
 	"""
 	Load images from given directory
 
-	Args:
+	Args
 		data_directory (str): directory that holds directories of images
 
-	Returns:
+	Returns
 		images (list): list of images
-		lables (list); list of corresponding labesls
+		lables (list): list of corresponding labesls
 	"""
 	# create list of all directories
 	direct = [d for d in listdir(data_directory)
