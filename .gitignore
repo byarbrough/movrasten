@@ -3,3 +3,4 @@ env-mrt/
 *.yaml
 *.h5
 ncs/logs/
+__pycache__/
