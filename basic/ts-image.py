@@ -7,14 +7,13 @@ Sub directories constitue the labels
 byarbrough
 June 2019
 """
-from keras.preprocessing.image import ImageDataGenerator
 from keras.models import load_model
-from keras.preprocessing.image import img_to_array
+from keras.preprocessing.image import ImageDataGenerator
 from os import path
 import sys
-import numpy as np
 
 ROOT_PATH = ""		# modify path to data directory
+
 
 def load_ts_data(ts_data_dir, img_dim):
 	"""
@@ -37,7 +36,6 @@ def load_ts_data(ts_data_dir, img_dim):
 	# load testing data
 	ts_set = ts_datagen.flow_from_directory(ts_data_dir,
 		target_size=(img_dim, img_dim), class_mode='categorical')
-	# convert to numpy arrays
 
 	return ts_set
 
@@ -61,6 +59,7 @@ def open_model(name):
 	model = load_model(name)
 	print(model.summary())
 	return model
+
 
 def main():
 	"""
