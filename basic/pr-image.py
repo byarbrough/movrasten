@@ -9,7 +9,7 @@ June 2019
 """
 from keras.models import load_model
 from keras.preprocessing.image import ImageDataGenerator
-from numpy import argmax
+import numpy as np
 from os import path
 from pandas import DataFrame
 import sys
@@ -37,7 +37,8 @@ def load_pr_data(pr_data_dir, img_dim):
 	pr_datagen = ImageDataGenerator(rescale=1./255)
 	# load prediction data
 	pr_set = pr_datagen.flow_from_directory(pr_data_dir,
-		target_size=(img_dim, img_dim), class_mode='categorical')
+		target_size=(img_dim, img_dim), class_mode='categorical',
+		shuffle=False)
 
 	return pr_set
 
@@ -60,6 +61,7 @@ def open_model(name):
 	# structure of model
 	model = load_model(name)
 	print(model.summary())
+
 	return model
 
 
@@ -67,6 +69,8 @@ def predict(pr_set, model):
 	"""
 	Use the loaded model to predict images
 	Returns index of highest likelihood category for each file
+	Only works for evenly divided batches... leaves some straglers
+
 	Args:
 		pr_set (DirectoryIterator): processed images
 		f_names (list): list of filenames
@@ -75,17 +79,28 @@ def predict(pr_set, model):
 		predictions (Array): label for each element
 	"""
 	# do prediction
-	preds = model.predict_generator(pr_set, steps=10, verbose=1)#pr_set.n, verbose=1)
-	print('raw preds', len(preds), preds[0:3])
+	steps = pr_set.n // pr_set.batch_size
+	preds = model.predict_generator(pr_set, steps=steps, verbose=1)
+	# TODO: clean up anything that did not divide evenly
+	# I am really bothered that this is a thing
+	'''
+	num_leftover = pr_set.n % pr_set.batch_size
+	for i in range(num_leftover, 0, -1):
+		img = pr_set.__getitem__(-i)[0]
+		img = np.array(img)
+		print('img', img.shape)
+		this_pred = model.predict(img)
+		print('this_pred', this_pred.shape)
+		np.append(preds, model.predict(img))
+		print('preds', preds.shape)
+	'''
+
 	# label index is highest likelihood
-	pr_class_indices = argmax(preds, axis=-1)
-	print('pr class index', len(pr_class_indices), pr_class_indices[0:10])
+	pr_class_indices = np.argmax(preds, axis=-1)
 	labels = pr_set.class_indices
 	# match everything up with python mumbojumbo
 	labels = dict((v,k) for k,v in labels.items())
-	print('labels demo', labels)
 	predictions = [labels[k] for k in pr_class_indices]
-	print('predictions', len(predictions), predictions[0:10])
 
 	return predictions
 
@@ -99,11 +114,11 @@ def save_predictions(pr_set, predictions):
 		pr_set (DirectoryIterator): the prediction data
 		predictions (array): labels for elements 
 	"""
+	# TODO: make it so there are not leftovers
+	num_leftover = pr_set.n % pr_set.batch_size
 	# get filenames from generator
-	filenames = pr_set.filenames
+	filenames = pr_set.filenames[:-num_leftover]
 	# use pandas to match everything
-	print(len(filenames))
-	print(len(predictions))
 	results = DataFrame({"Filename":filenames,
                       "Predictions":predictions})
 	# write to csv
