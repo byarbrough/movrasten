@@ -34,10 +34,10 @@ def load_ts_data(ts_data_dir, img_dim):
 	# strucutre to load data
 	ts_datagen = ImageDataGenerator(rescale=1./255)
 	# load testing data
-	ts_set = ts_datagen.flow_from_directory(ts_data_dir,
+	ts_gen = ts_datagen.flow_from_directory(ts_data_dir,
 		target_size=(img_dim, img_dim), class_mode='categorical')
 
-	return ts_set
+	return ts_gen
 
 
 def open_model(name):
@@ -84,11 +84,11 @@ def main():
 	img_dim = model.layers[0].input_shape[1]
 
 	# load testing data
-	ts_set = load_ts_data(ts_data_dir, img_dim)
+	ts_gen = load_ts_data(ts_data_dir, img_dim)
 
 	# test
 	print('Evaluating model...')
-	result = model.evaluate_generator(ts_set, steps=ts_set.n, verbose=1)
+	result = model.evaluate_generator(ts_gen, steps=ts_gen.n, verbose=1)
 	print('test loss, test acc: ', result)
 
 

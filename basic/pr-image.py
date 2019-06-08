@@ -36,11 +36,11 @@ def load_pr_data(pr_data_dir, img_dim):
 	# strucutre to load data
 	pr_datagen = ImageDataGenerator(rescale=1./255)
 	# load prediction data
-	pr_set = pr_datagen.flow_from_directory(pr_data_dir,
+	pr_gen = pr_datagen.flow_from_directory(pr_data_dir,
 		target_size=(img_dim, img_dim), class_mode='categorical',
 		shuffle=False)
 
-	return pr_set
+	return pr_gen
 
 
 def open_model(name):
@@ -65,28 +65,28 @@ def open_model(name):
 	return model
 
 
-def predict(pr_set, model):
+def predict(pr_gen, model):
 	"""
 	Use the loaded model to predict images
 	Returns index of highest likelihood category for each file
 	Only works for evenly divided batches... leaves some straglers
 
 	Args:
-		pr_set (DirectoryIterator): processed images
+		pr_gen (DirectoryIterator): processed images
 		f_names (list): list of filenames
 		model (keras model): loaded neural network
 	Returns:
 		predictions (Array): label for each element
 	"""
 	# do prediction
-	steps = pr_set.n // pr_set.batch_size
-	preds = model.predict_generator(pr_set, steps=steps, verbose=1)
+	steps = pr_gen.n // pr_gen.batch_size
+	preds = model.predict_generator(pr_gen, steps=steps, verbose=1)
 	# TODO: clean up anything that did not divide evenly
 	# I am really bothered that this is a thing
 	'''
-	num_leftover = pr_set.n % pr_set.batch_size
+	num_leftover = pr_gen.n % pr_gen.batch_size
 	for i in range(num_leftover, 0, -1):
-		img = pr_set.__getitem__(-i)[0]
+		img = pr_gen.__getitem__(-i)[0]
 		img = np.array(img)
 		print('img', img.shape)
 		this_pred = model.predict(img)
@@ -97,7 +97,7 @@ def predict(pr_set, model):
 
 	# label index is highest likelihood
 	pr_class_indices = np.argmax(preds, axis=-1)
-	labels = pr_set.class_indices
+	labels = pr_gen.class_indices
 	# match everything up with python mumbojumbo
 	labels = dict((v,k) for k,v in labels.items())
 	predictions = [labels[k] for k in pr_class_indices]
@@ -105,19 +105,19 @@ def predict(pr_set, model):
 	return predictions
 
 
-def save_predictions(pr_set, predictions):
+def save_predictions(pr_gen, predictions):
 	"""
 	Save the predictions to a csv
 	Each prediction is paired with the filename
 	
 	Args
-		pr_set (DirectoryIterator): the prediction data
+		pr_gen (DirectoryIterator): the prediction data
 		predictions (array): labels for elements 
 	"""
 	# TODO: make it so there are not leftovers
-	num_leftover = pr_set.n % pr_set.batch_size
+	num_leftover = pr_gen.n % pr_gen.batch_size
 	# get filenames from generator
-	filenames = pr_set.filenames[:-num_leftover]
+	filenames = pr_gen.filenames[:-num_leftover]
 	# use pandas to match everything
 	results = DataFrame({"Filename":filenames,
                       "Predictions":predictions})
@@ -152,13 +152,13 @@ def main():
 	img_dim = model.layers[0].input_shape[1]
 
 	# load images
-	pr_set = load_pr_data(pr_data_dir, img_dim)
+	pr_gen = load_pr_data(pr_data_dir, img_dim)
 
 	# predict
-	predictions = predict(pr_set, model)
+	predictions = predict(pr_gen, model)
 	
 	# save
-	save_predictions(pr_set, predictions)
+	save_predictions(pr_gen, predictions)
 
 
 if __name__ == '__main__':

@@ -35,7 +35,7 @@ def load(tr_data_dir):
 	Args
 		tr_data_dir (str): The directory that contains subdirectories
 	Returns
-		tr_set (DirectoryIterator): The loaded data and labels
+		tr_gen (DirectoryIterator): The loaded data and labels
 	"""
 
 	print("Loading training data from", tr_data_dir)
@@ -43,13 +43,13 @@ def load(tr_data_dir):
 	tr_datagen = ImageDataGenerator(rescale=1./255, 
 		shear_range=0.2, zoom_range=0.2, horizontal_flip=True) # helps with overfitting
 	# load training data
-	tr_set = tr_datagen.flow_from_directory(tr_data_dir,
+	tr_gen = tr_datagen.flow_from_directory(tr_data_dir,
 		target_size=(IMG_DIM, IMG_DIM), batch_size=32, class_mode='categorical')
 
-	return tr_set
+	return tr_gen
 
 
-def train(tr_set):
+def train(tr_gen):
 	"""
 	Constructs and trains a CNN
 	First layer takes in and resizes a color image
@@ -60,14 +60,14 @@ def train(tr_set):
 	Uses Adam optimzer.
 
 	Args
-		tr_set (DirectoryIterator): The loaded data and labels
+		tr_gen (DirectoryIterator): The loaded data and labels
 	Returns
 		model (Sequential): A compiled and trained model
 	"""
 
 	# math some constants
-	num_classes = len(tr_set.class_indices)
-	steps_per = tr_set.n // tr_set.batch_size
+	num_classes = len(tr_gen.class_indices)
+	steps_per = tr_gen.n // tr_gen.batch_size
 
 	# build a neural network
 	model = Sequential()
@@ -89,7 +89,7 @@ def train(tr_set):
 		metrics=['accuracy'])
 
 	# train.. lost of options to mess with in this function
-	model.fit_generator(tr_set, steps_per_epoch=steps_per, epochs=EPOCHS)
+	model.fit_generator(tr_gen, steps_per_epoch=steps_per, epochs=EPOCHS)
 
 	return model
 
@@ -132,10 +132,10 @@ def main():
 	tr_data_dir = path.join(ROOT_PATH, sys.argv[1])
 
 	# load data
-	tr_set = load(tr_data_dir)
+	tr_gen = load(tr_data_dir)
 
 	# fit the model
-	model = train(tr_set)
+	model = train(tr_gen)
 
 	# save the model
 	save(model, FNAME)
