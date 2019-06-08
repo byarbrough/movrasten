@@ -32,9 +32,9 @@ def load(tr_data_dir):
 	Uses keras flow_from_directory to read the iamges from subdirectories
 	Each subdirectroy is a label.
 
-	Args:
+	Args
 		tr_data_dir (str): The directory that contains subdirectories
-	Returns:
+	Returns
 		tr_set (DirectoryIterator): The loaded data and labels
 	"""
 
