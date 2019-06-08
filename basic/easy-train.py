@@ -72,7 +72,8 @@ def train(tr_set):
 	# build a neural network
 	model = Sequential()
 	# first layer
-	model.add(Convolution2D(32, 3, 3, input_shape=(IMG_DIM, IMG_DIM, 3), activation='relu'))
+	model.add(Convolution2D(filters=32, kernel_size=2,
+		input_shape=(IMG_DIM, IMG_DIM, 3), activation='relu'))
 	# pool to reduce number of features
 	model.add(MaxPooling2D(pool_size=(2,2)))
 	# flatten into single vector
@@ -86,7 +87,7 @@ def train(tr_set):
 	model.compile(optimizer=Adam(lr=LEARN_RATE),
 		loss='categorical_crossentropy',
 		metrics=['accuracy'])
-	
+
 	# train.. lost of options to mess with in this function
 	model.fit_generator(tr_set, steps_per_epoch=steps_per, epochs=EPOCHS)
 
