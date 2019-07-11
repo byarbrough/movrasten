@@ -7,8 +7,8 @@ Prediction images should be in a single directory
 byarbrough
 June 2019
 """
-from keras.models import load_model
-from keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import numpy as np
 from os import path
 from pandas import DataFrame

@@ -7,10 +7,10 @@ Sub directories constitue the labels
 byarbrough
 June 2019
 """
-from keras import Sequential
-from keras.layers import Convolution2D, MaxPooling2D, Flatten, Dense
-from keras.optimizers import Adam
-from keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras import Sequential
+from tensorflow.keras.layers import Convolution2D, MaxPooling2D, Flatten, Dense
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from os import path
 import sys
 
