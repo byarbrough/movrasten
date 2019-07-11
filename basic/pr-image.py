@@ -5,7 +5,7 @@ Uses Keras
 Prediction images should be in a single directory
 
 byarbrough
-June 2019
+July 2019
 """
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
@@ -69,7 +69,6 @@ def predict(pr_gen, model):
 	"""
 	Use the loaded model to predict images
 	Returns index of highest likelihood category for each file
-	Only works for evenly divided batches... leaves some straglers
 
 	Args:
 		pr_gen (DirectoryIterator): processed images
@@ -79,21 +78,7 @@ def predict(pr_gen, model):
 		predictions (Array): label for each element
 	"""
 	# do prediction
-	steps = pr_gen.n // pr_gen.batch_size
-	preds = model.predict_generator(pr_gen, steps=steps, verbose=1)
-	# TODO: clean up anything that did not divide evenly
-	# I am really bothered that this is a thing
-	'''
-	num_leftover = pr_gen.n % pr_gen.batch_size
-	for i in range(num_leftover, 0, -1):
-		img = pr_gen.__getitem__(-i)[0]
-		img = np.array(img)
-		print('img', img.shape)
-		this_pred = model.predict(img)
-		print('this_pred', this_pred.shape)
-		np.append(preds, model.predict(img))
-		print('preds', preds.shape)
-	'''
+	preds = model.predict_generator(pr_gen, verbose=1)
 
 	# label index is highest likelihood
 	pr_class_indices = np.argmax(preds, axis=-1)
@@ -114,19 +99,14 @@ def save_predictions(pr_gen, predictions):
 		pr_gen (DirectoryIterator): the prediction data
 		predictions (array): labels for elements 
 	"""
-	# TODO: make it so there are not leftovers
-	num_leftover = pr_gen.n % pr_gen.batch_size
-	# get filenames from generator
-	filenames = pr_gen.filenames[:-num_leftover]
 	# use pandas to match everything
-	results = DataFrame({"Filename":filenames,
+	results = DataFrame({"Filename":pr_gen.filenames,
                       "Predictions":predictions})
 	# write to csv
 	output_file = 'preds.csv'
 	results.to_csv(output_file, index=False)
 
 	print('Results saved to', output_file)
-
 
 
 def main():
