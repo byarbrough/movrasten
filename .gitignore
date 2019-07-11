@@ -4,5 +4,5 @@ env-mrt/
 *.h5
 ncs/logs/
 __pycache__/
-*.csv*
+*.csv
 models/
