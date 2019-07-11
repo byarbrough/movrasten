@@ -2,3 +2,7 @@
 env-mrt/
 *.yaml
 *.h5
+ncs/logs/
+__pycache__/
+*.csv*
+models/

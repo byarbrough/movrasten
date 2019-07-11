@@ -1,185 +1,145 @@
-#######################################################
-## Simple file for training Tensor Flow Neural Net
-## Uses Keras
-##
-## Training images should be in a single directory
-## Sub directories constitue the labels
-##
-## byarbrough
-## May 2019
-########################################################
-import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras.utils import to_categorical
-from tensorflow.keras import optimizers
+"""
+Simple file for training image classification with Keras
+
+Training images should be in a single directory
+Sub directories constitue the labels
+
+byarbrough
+June 2019
+"""
+from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Convolution2D, MaxPooling2D, Flatten, Dense
-from skimage import data, transform
-from os import path, listdir
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from os import path
 import sys
-import numpy as np
 
 # Define defaults
-EPOCHS = 20					# how many times to train
+EPOCHS = 16					# how many epochs
 BATCH_SIZE = 32 			# size of a training batch
 LEARN_RATE = 0.001 			# learning rate for optimizer
 ROOT_PATH = ""				# modify path to data directory
-IMG_DIM = 28				# DxD size of square image
-NUM_INTERNAL_LAYERS = 1			# number of coputational layers
-INT_LAYER_SIZE = -1			# size of internal layer, -1 for default
+IMG_DIM = 32				# dimension to resize image to
+NUM_INTERNAL_LAYERS = 1		# number of coputational layers
+INTERNAL_LAYER_SIZE = 128	# size of internal layer
 FNAME = 'model'				# filename to save outputs as
+OPTIMIZER = True			# include the optimizer when saving
 
 
-def load_data(data_directory):
+def load(tr_data_dir):
 	"""
-	Load images from given directory
-
-	Args:
-		data_directory (str): directory that holds directories of images
-
-	Returns:
-		images (list): list of images
-		lables (list); list of corresponding labesls
-	"""
-	# create list of all directories
-	direct = [d for d in listdir(data_directory)
-		if path.isdir(path.join(data_directory, d))]
-
-	images = []
-	labels = []
-
-	# load from each directory
-	for d in direct:
-		label_direct = path.join(data_directory, d)
-		file_names = [path.join(label_direct, f)
-			for f in listdir(label_direct)
-			if f.endswith(".ppm")] # this is pretty strict
-
-		for f in file_names:
-			images.append(data.imread(f))
-			labels.append(int(d)) # this only works if the directory is a number
-
-	return images, labels
-
-
-def preprocess(images, labels):
-	"""
-	Standardize images so they are ready for training
+	Uses keras ImageDataGenerator to load the data from directories.
+	Uses keras flow_from_directory to read the iamges from subdirectories
+	Each subdirectroy is a label.
 
 	Args
-		images (list): images to be processed
-
+		tr_data_dir (str): The directory that contains subdirectories
 	Returns
-		p_images (list): processed images
+		tr_gen (DirectoryIterator): The loaded data and labels
 	"""
 
-	# resize the image
-	p_images = [transform.resize(image, (IMG_DIM, IMG_DIM)) for image in images]
+	print("Loading training data from", tr_data_dir)
+	# strucutre to load data
+	tr_datagen = ImageDataGenerator(rescale=1./255, 
+		shear_range=0.2, zoom_range=0.2, horizontal_flip=True) # helps with overfitting
+	# load training data
+	tr_gen = tr_datagen.flow_from_directory(tr_data_dir,
+		target_size=(IMG_DIM, IMG_DIM), batch_size=32, class_mode='categorical')
 
-	# needs to be an array
-	p_images = np.array(p_images)
-
-	# tf keras categorization of labels
-	p_labels = tf.keras.utils.to_categorical(np.array(labels))
-
-	return p_images, p_labels
+	return tr_gen
 
 
-def train(p_images, labels):
+def train(tr_gen):
 	"""
-	Constructs and trains a dense neural network.
-	First layer has as many nodes as processed image has pixels.
-	The next NUM_INTERNAL_LAYERS default to the same number of nodes
-	or are set to INT_LAYER_SIZE.
-	The last layer has as many nodes as there are categories.
-	Uses relu activation internally and softmax for last layer.
+	Constructs and trains a CNN
+	First layer takes in and resizes a color image
+	Second layer does max pooling to reduce the number of features
+	The next NUM_INTERNAL_LAYERS of size INTERNAL_LAYER_SIZE do the work
+	The last layer does softmax to the number of classes.
+	All layers but last use relu activation.
 	Uses Adam optimzer.
 
 	Args
-		p_images (narray): images that have been preprocessed
-		labels (categorical): labels of images in a one-hot matrix
-
+		tr_gen (DirectoryIterator): The loaded data and labels
 	Returns
-		model (keras model): a trained model
-
+		model (Sequential): A compiled and trained model
 	"""
 
-	pix = IMG_DIM * IMG_DIM
-	int_size = INT_LAYER_SIZE
-	if INT_LAYER_SIZE == -1:
-		int_size = pix
-	num_categories = len(labels[0])
+	# math some constants
+	num_classes = len(tr_gen.class_indices)
+	steps_per = tr_gen.n // tr_gen.batch_size
 
+	# build a neural network
+	model = Sequential()
 	# first layer
-	model = keras.Sequential()
-	model.add(Convolution2D(32, 3, 3, activation='relu'))
+	model.add(Convolution2D(filters=32, kernel_size=2,
+		input_shape=(IMG_DIM, IMG_DIM, 3), activation='relu'))
 	# pool to reduce number of features
 	model.add(MaxPooling2D(pool_size=(2,2)))
 	# flatten into single vector
 	model.add(Flatten())
 	# internal layers
-	[model.add(Dense(int_size, activation='relu')) for i in range(NUM_INTERNAL_LAYERS)]
+	[model.add(Dense(INTERNAL_LAYER_SIZE, activation='relu')) for i in range(NUM_INTERNAL_LAYERS)]
 	# last layer
-	model.add(Dense(num_categories, activation='softmax'))
+	model.add(Dense(num_classes, activation='softmax'))
 
 	# compile
-	model.compile(optimizer=keras.optimizers.Adam(lr=LEARN_RATE),
+	model.compile(optimizer=Adam(lr=LEARN_RATE),
 		loss='categorical_crossentropy',
 		metrics=['accuracy'])
-	
-	# train
-	model.fit(p_images, labels, batch_size=BATCH_SIZE, epochs=EPOCHS)
+
+	# train.. lost of options to mess with in this function
+	model.fit_generator(tr_gen, steps_per_epoch=steps_per, epochs=EPOCHS)
 
 	return model
 
 
-def save(model):
+def save(model, fname):
 	"""
-	Save the model as a YAML file and a weight files
+	Save the full model as a .h5 file
 
 	Args
-		fname (str): filename
-		model (keras model): the trained model to save
+		fname (str): filename to save file as
+		model (Sequential): The compiled and trained model to save
 	"""
 	# print a summary
 	print(model.summary())
 
+	# make sure there is not a filetype included
+	fname = fname.split('.', 1)[0]
+	
 	# save model
-	model.save(FNAME+'.h5')
+	if OPTIMIZER:
+		model.save(fname+'.h5', include_optimizer=True)
+	else:
+		model.save(fname+'.h5', include_optimizer=False)
 
 	# confirm
-	print('Model saved as ' + FNAME +'.h5')
+	print('Model saved as ' + fname +'.h5')
 
 
 def main():
 	"""
-	A simple demo of computer vision with Tensor Flow Keras
-	Loads images, preprocess images, builds and trains a nerual network
-	Model is saved as a YAML file for structure and h5 for weights
-
-	Args
-		path to training data directory
+	Load training data
+	Build and train a CNN
+	Save the model
 	"""
+	
 	# locate training data
 	if (len(sys.argv) != 2):
 		print("Argument required: training directory")
 		quit()
-	train_data_dir = path.join(ROOT_PATH, sys.argv[1])
+	tr_data_dir = path.join(ROOT_PATH, sys.argv[1])
 
-	# load training data
-	print("Loading training data from", train_data_dir)
-	images, labels = load_data(train_data_dir)
-	print(len(images), 'images loaded')
+	# load data
+	tr_gen = load(tr_data_dir)
 
-	# preprocess
-	p_images, labels = preprocess(images, labels)
+	# fit the model
+	model = train(tr_gen)
 
-	# train model
-	print("Beginning training")
-	model = train(p_images, labels)
-	print("Training complete")
+	# save the model
+	save(model, FNAME)
 
-	# save model
-	save(model)
 
 if __name__ == '__main__':
 	main()

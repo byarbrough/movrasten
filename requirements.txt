@@ -1,4 +1,4 @@
 tensorflow
-keras
+pandas
 numpy
-scikit-image
+Pillow
