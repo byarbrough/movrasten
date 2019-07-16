@@ -7,7 +7,7 @@ Sub directories constitue the labels
 byarbrough
 June 2019
 """
-from tensorflow.keras import Sequential
+from tensorflow.keras import Sequential, callbacks
 from tensorflow.keras.layers import Convolution2D, MaxPooling2D, Flatten, Dense
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
@@ -41,10 +41,14 @@ def load(tr_data_dir):
 	print("Loading training data from", tr_data_dir)
 	# strucutre to load data
 	tr_datagen = ImageDataGenerator(rescale=1./255, 
-		shear_range=0.2, zoom_range=0.2, horizontal_flip=True) # helps with overfitting
+		shear_range=0.2,
+		zoom_range=0.2,
+		horizontal_flip=True) # helps with overfitting
 	# load training data
 	tr_gen = tr_datagen.flow_from_directory(tr_data_dir,
-		target_size=(IMG_DIM, IMG_DIM), batch_size=32, class_mode='categorical')
+		target_size=(IMG_DIM, IMG_DIM),
+		batch_size=32,
+		class_mode='categorical')
 
 	return tr_gen
 
@@ -67,7 +71,6 @@ def train(tr_gen):
 
 	# math some constants
 	num_classes = len(tr_gen.class_indices)
-	steps_per = tr_gen.n // tr_gen.batch_size
 
 	# build a neural network
 	model = Sequential()
@@ -75,7 +78,7 @@ def train(tr_gen):
 	model.add(Convolution2D(filters=32, kernel_size=2,
 		input_shape=(IMG_DIM, IMG_DIM, 3), activation='relu'))
 	# pool to reduce number of features
-	model.add(MaxPooling2D(pool_size=(2,2)))
+	model.add(MaxPooling2D(pool_size=2))
 	# flatten into single vector
 	model.add(Flatten())
 	# internal layers
@@ -89,7 +92,7 @@ def train(tr_gen):
 		metrics=['accuracy'])
 
 	# train.. lost of options to mess with in this function
-	model.fit_generator(tr_gen, steps_per_epoch=steps_per, epochs=EPOCHS)
+	model.fit_generator(tr_gen, epochs=EPOCHS)
 
 	return model
 
