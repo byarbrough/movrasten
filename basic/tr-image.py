@@ -47,7 +47,7 @@ def load(tr_data_dir):
 	# load training data
 	tr_gen = tr_datagen.flow_from_directory(tr_data_dir,
 		target_size=(IMG_DIM, IMG_DIM),
-		batch_size=32,
+		batch_size=BATCH_SIZE,
 		class_mode='categorical')
 
 	return tr_gen
