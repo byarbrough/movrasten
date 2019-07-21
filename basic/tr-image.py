@@ -15,13 +15,11 @@ from os import path
 import sys
 
 # Define defaults
-EPOCHS = 16					# how many epochs
+EPOCHS = 11					# how many epochs
 BATCH_SIZE = 32 			# size of a training batch
 LEARN_RATE = 0.001 			# learning rate for optimizer
 ROOT_PATH = ""				# modify path to data directory
 IMG_DIM = 32				# dimension to resize image to
-NUM_INTERNAL_LAYERS = 1		# number of coputational layers
-INTERNAL_LAYER_SIZE = 128	# size of internal layer
 FNAME = 'model'				# filename to save outputs as
 OPTIMIZER = True			# include the optimizer when saving
 
@@ -43,7 +41,7 @@ def load(tr_data_dir):
 	tr_datagen = ImageDataGenerator(rescale=1./255, 
 		shear_range=0.2,
 		zoom_range=0.2,
-		horizontal_flip=True) # helps with overfitting
+		horizontal_flip=False) # helps with overfitting
 	# load training data
 	tr_gen = tr_datagen.flow_from_directory(tr_data_dir,
 		target_size=(IMG_DIM, IMG_DIM),
@@ -56,9 +54,8 @@ def load(tr_data_dir):
 def train(tr_gen):
 	"""
 	Constructs and trains a CNN
-	First layer takes in and resizes a color image
-	Second layer does max pooling to reduce the number of features
-	The next NUM_INTERNAL_LAYERS of size INTERNAL_LAYER_SIZE do the work
+	Several Convolution2D and MaxPooling2D layers,
+	then one hidden dense layer.
 	The last layer does softmax to the number of classes.
 	All layers but last use relu activation.
 	Uses Adam optimzer.
@@ -75,14 +72,19 @@ def train(tr_gen):
 	# build a neural network
 	model = Sequential()
 	# first layer
-	model.add(Convolution2D(filters=32, kernel_size=2,
+	model.add(Convolution2D(filters=16, kernel_size=(3,3),
 		input_shape=(IMG_DIM, IMG_DIM, 3), activation='relu'))
 	# pool to reduce number of features
 	model.add(MaxPooling2D(pool_size=2))
+	# additional layers
+	model.add(Convolution2D(32, (3, 3), activation='relu'))
+	model.add(MaxPooling2D(pool_size=2))
+	model.add(Convolution2D(64, (3, 3), activation='relu'))
+	model.add(MaxPooling2D(pool_size=2))
 	# flatten into single vector
 	model.add(Flatten())
-	# internal layers
-	[model.add(Dense(INTERNAL_LAYER_SIZE, activation='relu')) for i in range(NUM_INTERNAL_LAYERS)]
+	# a hidden dense layer
+	model.add(Dense(512))
 	# last layer
 	model.add(Dense(num_classes, activation='softmax'))
 
