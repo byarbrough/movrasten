@@ -73,7 +73,8 @@ def train(tr_gen):
 	model = Sequential()
 	# first layer
 	model.add(Convolution2D(filters=16, kernel_size=(3,3),
-		input_shape=(IMG_DIM, IMG_DIM, 3), activation='relu'))
+		input_shape=(IMG_DIM, IMG_DIM, 3), activation='relu',
+		name='input'))
 	# pool to reduce number of features
 	model.add(MaxPooling2D(pool_size=2))
 	# additional layers
@@ -86,7 +87,7 @@ def train(tr_gen):
 	# a hidden dense layer
 	model.add(Dense(512))
 	# last layer
-	model.add(Dense(num_classes, activation='softmax'))
+	model.add(Dense(num_classes, activation='softmax', name='output'))
 
 	# compile
 	model.compile(optimizer=Adam(lr=LEARN_RATE),
