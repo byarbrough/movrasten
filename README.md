@@ -83,3 +83,14 @@ For NCS version 1, I suspect that following the SDK basic installation at https:
 For version 2, use https://docs.openvinotoolkit.org/latest/_docs_install_guides_installing_openvino_raspbian.html
 
 
+## Run
+After training the model and [freezing](https://docs.openvinotoolkit.org/latest/_docs_MO_DG_prepare_model_convert_model_Convert_Model_From_TensorFlow.html#loading-nonfrozen-models) the model run
+```
+ python /opt/intel/openvino_2019.2.242/deployment_tools/model_optimizer/mo_tf.py --input_model model.pb -b 1 --data_type FP16 --scale 255
+```
+This requries [prerequisites to be installed](https://docs.openvinotoolkit.org/latest/_docs_MO_DG_prepare_model_Config_Model_Optimizer.html)
+
+Then inference can happen with one of the samples
+```
+python /opt/intel/openvino/deployment_tools/inference_engine/samples/python_samples/classification_sample/classification_sample.py  -m inference_graph.xml -nt 2 -i ~/data/belgium-traffic/Testing/00041/ -d MYRIAD
+```
