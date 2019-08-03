@@ -7,11 +7,11 @@ Sub directories constitue the labels
 byarbrough
 August 2019
 """
-from tensorflow import global_variables_initializer
+from tensorflow import Session
 from tensorflow import graph_util
 from tensorflow.train import Saver
 from tensorflow.keras import Sequential, callbacks
-from tensorflow.keras.backend import get_session
+from tensorflow.keras.backend import set_session
 from tensorflow.keras.layers import Convolution2D, MaxPooling2D, Flatten, Dense
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
@@ -27,7 +27,7 @@ ROOT_PATH = ""				# modify path to data directory
 IMG_DIM = 64				# dimension to resize image to
 FNAME = 'model'				# filename to save outputs as
 
-def load(tr_data_dir):
+def load_data(tr_data_dir):
 	"""
 	Uses keras ImageDataGenerator to load the data from directories.
 	Uses keras flow_from_directory to read the iamges from subdirectories
@@ -103,7 +103,7 @@ def train(tr_gen):
 	return model
 
 
-def save(model, fname):
+def save(model, fname, sess):
 	"""
 	Save the full model as a .h5 file
 
@@ -121,9 +121,6 @@ def save(model, fname):
 	model.save(fname+'.h5', include_optimizer=True)
 	print('Keras model saved as ' + fname +'.h5')
 	# as forzen
-	saver = Saver()
-	sess = get_session()
-	sess.run(global_variables_initializer())
 	frozen = graph_util.convert_variables_to_constants(sess,
 		sess.graph_def, ["output/Softmax"])
 	graph_io.write_graph(frozen, './', fname+'.pb', as_text=False)
@@ -136,6 +133,9 @@ def main():
 	Build and train a CNN
 	Save the model
 	"""
+	# tell Keras to use this session
+	sess = Session()
+	set_session(sess)
 	
 	# locate training data
 	if (len(sys.argv) != 2):
@@ -144,13 +144,13 @@ def main():
 	tr_data_dir = path.join(ROOT_PATH, sys.argv[1])
 
 	# load data
-	tr_gen = load(tr_data_dir)
+	tr_gen = load_data(tr_data_dir)
 
 	# fit the model
 	model = train(tr_gen)
 
 	# save the model
-	save(model, FNAME)
+	save(model, FNAME, sess)
 
 
 if __name__ == '__main__':
