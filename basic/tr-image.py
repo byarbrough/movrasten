@@ -5,24 +5,27 @@ Training images should be in a single directory
 Sub directories constitue the labels
 
 byarbrough
-June 2019
+August 2019
 """
+from tensorflow import global_variables_initializer
+from tensorflow import graph_util
+from tensorflow.train import Saver
 from tensorflow.keras import Sequential, callbacks
+from tensorflow.keras.backend import get_session
 from tensorflow.keras.layers import Convolution2D, MaxPooling2D, Flatten, Dense
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.python.framework import graph_io
 from os import path
 import sys
 
 # Define defaults
-EPOCHS = 11					# how many epochs
+EPOCHS = 3					# how many epochs
 BATCH_SIZE = 32 			# size of a training batch
 LEARN_RATE = 0.001 			# learning rate for optimizer
 ROOT_PATH = ""				# modify path to data directory
-IMG_DIM = 32				# dimension to resize image to
+IMG_DIM = 64				# dimension to resize image to
 FNAME = 'model'				# filename to save outputs as
-OPTIMIZER = True			# include the optimizer when saving
-
 
 def load(tr_data_dir):
 	"""
@@ -114,14 +117,17 @@ def save(model, fname):
 	# make sure there is not a filetype included
 	fname = fname.split('.', 1)[0]
 	
-	# save model
-	if OPTIMIZER:
-		model.save(fname+'.h5', include_optimizer=True)
-	else:
-		model.save(fname+'.h5', include_optimizer=False)
-
-	# confirm
-	print('Model saved as ' + fname +'.h5')
+	# as keras
+	model.save(fname+'.h5', include_optimizer=True)
+	print('Keras model saved as ' + fname +'.h5')
+	# as forzen
+	saver = Saver()
+	sess = get_session()
+	sess.run(global_variables_initializer())
+	frozen = graph_util.convert_variables_to_constants(sess,
+		sess.graph_def, ["output/Softmax"])
+	graph_io.write_graph(frozen, './', fname+'.pb', as_text=False)
+	print('Frozen model saved as ' + fname +'.pb')
 
 
 def main():
