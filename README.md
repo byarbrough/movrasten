@@ -77,14 +77,36 @@ cd /opt/intel/openvino/deployment_tools/demo
 You should get a great *Demo completed successfully.*
 
 #### Raspberry Pi Installation
-_NOTE: Inference on the Pi doesn't work yet._
-For NCS version 1, I suspect that following the SDK basic installation at https://movidius.github.io/ncsdk/install.html will work, being sure to use `make install api` since the full sdk ought not to go on the Pi.
+Minimum version `2019.2.242`. The latest version can be found at the [Intel® Open Source Technology Center](https://download.01.org/opencv/2019/openvinotoolkit/)
+Follow [Install OpenVINO™ toolkit for Raspbian* OS](https://docs.openvinotoolkit.org/latest/_docs_install_guides_installing_openvino_raspbian.html)
 
-For version 2, use https://docs.openvinotoolkit.org/latest/_docs_install_guides_installing_openvino_raspbian.html
+Or use these consolidated steps
+```
+cd ~/Downloads/
+wget https://download.01.org/opencv/2019/openvinotoolkit/R2/l_openvino_toolkit_runtime_raspbian_p_2019.2.242.tgz
+sudo mkdir -p /opt/intel/openvino
+sudo tar -xf l_openvino_toolkit_runtime_raspbian_p_2019.2.242.tgz --strip 1 -C /opt/intel/openvino
+sudo apt install cmake
+source /opt/intel/openvino/bin/setupvars.sh
+echo "source /opt/intel/openvino/bin/setupvars.sh" >> ~/.bashrc
+```
+You should see the output
+```
+[setupvars.sh] OpenVINO environment initialized
+```
+Then setup USB rules
+```
+sudo usermod -a -G users "$(whoami)"
+```
+Log out and back in
+```
+sh /opt/intel/openvino/install_dependencies/install_NCS_udev_rules.sh
+```
 
-Apparently $PYTHONPATH has a bug so needs this added to it
-`${PYTHONPATH}:/opt/intel/openvino/python/python3.5/armv7l/`
-https://software.intel.com/en-us/forums/computer-vision/topic/807560#comment-1937618%20%20Attachments
+At this point, the following should execute cleanly:
+```
+python3 -c "from openvino.inference_engine import IENetwork, IEPlugin"
+```
 
 ## Run
 1. Train the model
@@ -114,8 +136,12 @@ This requries [prerequisites to be installed](https://docs.openvinotoolkit.org/l
 Input channels are reversed (bgr) and that caused me a lot of suffering until I saw it somewhere in the docs!!!
 
 ### Conduct Inference
-Then inference can happen on your Ubuntu machie with one of the samples
+Inference requires both the `.bin` and `.xml` files to be in the same directory.
 ```
-python /opt/intel/openvino/deployment_tools/inference_engine/samples/python_samples/classification_sample/classification_sample.py  -m inference_graph.xml -nt 2 -i <path to test image> -d MYRIAD
+python infer/classification_sample.py -m <path to model>.xml -nt 5 -i <path to test image> -d MYRIAD
 ```
-Inference should work with MYRIAD or CPU for the `-d` option
+On the desktop inference should work with MYRIAD or CPU for the `-d` option
+
+#### Raspbery Pi
+Copy *both* the `.bin` and `.xml` files from the desktop to the Pi. Then the same inference command will work!
+On the Raspberry Pi inference will only work for MYRIAD.
