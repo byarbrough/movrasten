@@ -26,5 +26,8 @@ RUN apt-get update && apt-get install -y intel-openvino-dev-ubuntu18-2019.2.242
 RUN cd /opt/intel/openvino/deployment_tools/model_optimizer/install_prerequisites/ && ./install_prerequisites_tf.sh
 RUN /opt/intel/openvino/bin/setupvars.sh
 
+# temporary fix for bug in networkx-2.4 https://github.com/microsoft/onnxruntime/issues/2169#issuecomment-543988929
+RUN pip3 uninstall -y networkx; pip3 install networkx==2.3
+
 # copy the models
 COPY models/ /app/
