@@ -48,7 +48,7 @@ shell:
 	docker run -it --mount type=bind,source=${CURDIR}/data,destination=/app/data,readonly --name $(APP) $(IMG);
 
 train:
-	docker run -it -d --mount type=bind,source=${CURDIR}/data,destination=/app/data,readonly --name $(APP) $(IMG);
+	docker run -it -d --mount type=bind,source=${CURDIR}/data,destination=/app/data,readonly,consistency=cached --name $(APP) $(IMG);
 	docker exec $(APP) python src/tr_image.py data/train;
 	docker cp $(APP):/app/models/. ${CURDIR}/models/;
 	docker stop $(APP)
