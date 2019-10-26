@@ -1,3 +1,5 @@
 *.pb
 *.h5
+*
+!openvino/
 !.gitignore
