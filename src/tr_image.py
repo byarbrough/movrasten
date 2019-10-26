@@ -25,6 +25,7 @@ LEARN_RATE = 0.001 			# learning rate for optimizer
 ROOT_PATH = ""				# modify path to data directory
 IMG_DIM = 64				# dimension to resize image to
 FNAME = 'model'				# filename to save outputs as
+MOD_DIR = 'models/'          # directory in which to save models
 
 
 def load_data(tr_data_dir):
@@ -128,13 +129,13 @@ def save(model, fname, sess):
     fname = fname.split('.', 1)[0]
 
     # as keras
-    model.save(fname + '.h5', include_optimizer=True)
-    print('Keras model saved as ' + fname + '.h5')
+    model.save(MOD_DIR + fname + '.h5', include_optimizer=True)
+    print('Keras model saved as ' + MOD_DIR + fname + '.h5')
     # as forzen
     frozen = graph_util.convert_variables_to_constants(
         sess, sess.graph_def, ["output/Softmax"])
-    write_graph(frozen, './', fname + '.pb', as_text=False)
-    print('Frozen model saved as ' + fname + '.pb')
+    write_graph(frozen, './', MOD_DIR + fname + '.pb', as_text=False)
+    print('Frozen model saved as ' + MOD_DIR + fname + '.pb')
 
 
 def main():
