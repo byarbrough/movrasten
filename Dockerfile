@@ -1,4 +1,4 @@
-FROM tensorflow/tensorflow:latest-py3
+FROM tensorflow/tensorflow:2.0.0-py3
 # this is based on https://github.com/IntelAI/OpenVINO-model-server/blob/master/Dockerfile
 
 WORKDIR /app
@@ -6,12 +6,7 @@ WORKDIR /app
 # basic install
 RUN apt-get update && apt-get install -y --no-install-recommends \
             ca-certificates \
-            curl \
             lsb-core \
-            python3-dev \
-            python3-pip \
-            python3-setuptools \
-            gnupg2 \
             sudo
 
 # download OpenVINO
@@ -23,8 +18,10 @@ RUN apt-get update && apt-get install -y intel-openvino-dev-ubuntu18-2019.2.242
 RUN cd /opt/intel/openvino/deployment_tools/model_optimizer/install_prerequisites/ && ./install_prerequisites_tf.sh
 RUN /opt/intel/openvino/bin/setupvars.sh
 
-# temporary fix for bug in networkx-2.4 https://github.com/microsoft/onnxruntime/issues/2169#issuecomment-543988929
-RUN pip3 uninstall -y networkx; pip3 install networkx==2.3
+# additional python dependencies
+copy requirements.txt /app
+RUN pip --no-cache-dir install -r requirements.txt
 
-# copy the models
-COPY models/ /app/
+# copy source files (but not the data!)
+RUN mkdir /app/models
+COPY src/ /app/src
