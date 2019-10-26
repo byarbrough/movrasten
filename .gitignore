@@ -5,5 +5,4 @@ env-mrt/
 ncs/logs/
 __pycache__/
 *.csv
-models/
 *.ppm
