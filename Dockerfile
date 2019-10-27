@@ -1,4 +1,4 @@
-FROM tensorflow/tensorflow:2.0.0-py3
+FROM tensorflow/tensorflow:1.15.0-py3
 # this is based on https://github.com/IntelAI/OpenVINO-model-server/blob/master/Dockerfile
 
 WORKDIR /app
@@ -21,7 +21,3 @@ RUN /opt/intel/openvino/bin/setupvars.sh
 # additional python dependencies
 copy requirements.txt /app
 RUN pip --no-cache-dir install -r requirements.txt
-
-# copy source files (but not the data!)
-RUN mkdir /app/models
-COPY src/ /app/src

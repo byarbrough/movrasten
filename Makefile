@@ -26,47 +26,55 @@ HOST_UID = $(strip $(if $(uid),$(uid),0))
 endif
 
 # commands not to be confused with files
-.PHONY: help build clean convert train
+.PHONY: all
 
 help:
 	@echo ''
 	@echo 'Usage: make [TARGET] [EXTRA_ARGUMENTS]'
 	@echo 'Targets:'
-	@echo '  build    	build docker $(IMG) for current user: $(HOST_USER)(uid=$(HOST_UID))'
-	@echo '  clean    	remove docker image $(IMG) for current user: $(HOST_USER)(uid=$(HOST_UID))'
+	@echo '  all 		build, train, convert_32, stop'
+	@echo '  build    	build docker $(IMG)'
+	@echo '  clean    	remove docker image $(IMG)'
 	@echo '  convert_16	convert frozen tensorflow model to openvino FP16 format for Neural Compute Stick'
 	@echo '  convert_32 convert frozen tensorflow model to openvino FP32 format for desktop'
+	@echo '  infer		condut OpenVINO inference on CPU'
+	@echo '  infer_16	conduct OpenVINO inference on NCS'
 	@echo '  prune    	shortcut for docker system prune -af. Cleanup inactive containers and cache.'
-	@echo '  rebuild  	rebuild docker $(IMG) for current user: $(HOST_USER)(uid=$(HOST_UID))'
-	@echo '  shell		run docker --container-- for current user: $(HOST_USER)(uid=$(HOST_UID))'
+	@echo '  rebuild  	force rebuild docker $(IMG) for with --no-cache'
+	@echo '  run 		run docker $(IMG) as $(APP) for current user: $(HOST_USER)(uid=$(HOST_UID))'
+	@echo '  shell		open interactive shell to stopped container $(APP) for current user'
+	@echo '  stop		stop $(APP)'
 	@echo '  train		train the model on data in the data/train directory'
 	@echo ''
 
+all: | build train convert_32 stop
+
 build:
-	docker build -t $(IMG) .
+	sudo docker build -t $(IMG) .
 
 clean:
-	docker stop $(APP); docker rm $(APP)
+	sudo docker rm -f $(APP);
 
 convert_16:
-	docker run -u $(HOST_UID):$(HOST_GID) -it -d --mount type=bind,source=${CURDIR}/models,destination=/app/models --name $(APP) $(IMG);
-	docker exec -w /app/models/openvino $(APP) python $(MO_TF) --input_model /app/models/$(MOD).pb -b $(BATCH_SIZE) --data_type FP16 --scale 255 --reverse_input_channels;
-	docker stop $(APP)
-	docker rm $(APP)
-
+	sudo docker exec -w /app/models/openvino $(APP) python $(MO_TF) --input_model /app/models/$(MOD).pb -b $(BATCH_SIZE) --data_type FP16 --scale 255 --reverse_input_channels;
 
 convert_32:
-	docker run -u $(HOST_UID):$(HOST_GID) -it -d --mount type=bind,source=${CURDIR}/models,destination=/app/models --name $(APP) $(IMG);
-	docker exec -w /app/models/openvino $(APP) python $(MO_TF) --input_model /app/models/$(MOD).pb -b $(BATCH_SIZE) --data_type FP32 --scale 255 --reverse_input_channels;
-	docker stop $(APP)
-	docker rm $(APP)
+	sudo docker exec -w /app/models/openvino $(APP) python $(MO_TF) --input_model /app/models/$(MOD).pb -b $(BATCH_SIZE) --data_type FP32 --scale 255 --reverse_input_channels;
+
+prune:
+	sudo docker system prune -af
+
+rebuild:
+	sudo docker build --no-cache -t $(IMG) .
+
+run:
+	sudo docker run -u $(HOST_UID):$(HOST_GID) -it -d --mount type=bind,source=${CURDIR},destination=/app,consistency=cached --name $(APP) $(IMG);
 
 shell:
-	docker run -it --mount type=bind,source=${CURDIR}/data,destination=/app/data,readonly --name $(APP) $(IMG);
+	sudo docker start -i $(APP)
+
+stop:
+	sudo docker stop $(APP)
 
 train:
-	docker run -u $(HOST_UID):$(HOST_GID) -it -d --mount type=bind,source=${CURDIR}/data,destination=/app/data,readonly,consistency=cached --name $(APP) $(IMG);
-	docker exec $(APP) python src/tr_image.py data/train;
-	docker cp $(APP):/app/models/. ${CURDIR}/models/;
-	docker stop $(APP)
-	docker rm $(APP)
+	sudo docker exec $(APP) python /app/src/tr_image.py /app/data/train;
