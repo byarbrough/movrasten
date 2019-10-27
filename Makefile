@@ -26,13 +26,13 @@ HOST_UID = $(strip $(if $(uid),$(uid),0))
 endif
 
 # commands not to be confused with files
-.PHONY: all
+.PHONY: all build clean convert_16 convert_32 infer infer_16 prune rebuild run shell stop test train
 
 help:
 	@echo ''
 	@echo 'Usage: make [TARGET] [EXTRA_ARGUMENTS]'
 	@echo 'Targets:'
-	@echo '  all 		build, train, convert_32, stop'
+	@echo '  all 		build, run, train, convert_32'
 	@echo '  build    	build docker $(IMG)'
 	@echo '  clean    	remove docker image $(IMG)'
 	@echo '  convert_16	convert frozen tensorflow model to openvino FP16 format for Neural Compute Stick'
@@ -44,10 +44,11 @@ help:
 	@echo '  run 		run docker $(IMG) as $(APP) for current user: $(HOST_USER)(uid=$(HOST_UID))'
 	@echo '  shell		open interactive shell to stopped container $(APP) for current user'
 	@echo '  stop		stop $(APP)'
-	@echo '  train		train the model on data in the data/train directory'
+	@echo '  test 		test the model with tensorflow on data in data/test'
+	@echo '  train		train a model on data in the data/train directory'
 	@echo ''
 
-all: | build train convert_32 stop
+all: | build run train convert_32
 
 build:
 	sudo docker build -t $(IMG) .
@@ -60,6 +61,9 @@ convert_16:
 
 convert_32:
 	sudo docker exec -w /app/models/openvino $(APP) python $(MO_TF) --input_model /app/models/$(MOD).pb -b $(BATCH_SIZE) --data_type FP32 --scale 255 --reverse_input_channels;
+
+infer:
+	sudo docker exec $(APP) python infer/classification_sample.py -m /app/models/openvino/$(MOD).xml -nt 5 -i /app/data/infer/ -d CPU
 
 prune:
 	sudo docker system prune -af
