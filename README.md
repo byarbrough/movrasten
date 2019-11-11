@@ -1,5 +1,3 @@
-<img src="https://images.hellogiggles.com/uploads/2017/03/13095105/Rasputin_2.png" width="398" height="230">
-
 # Movrasten
 *Mo*idius *Ras*berry Pi and *Ten*sorflow
 Train a Tensorflow Keras Deep Neural Network model and conduct inference on a an edge device (Raspberry Pi) with hardware acceleration from the Intel Nueral Compute Stick 2. How's that for buzzword bingo!
