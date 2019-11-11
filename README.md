@@ -30,7 +30,7 @@ Also place one or more images directly into the `data/infer` folder, as this is 
 Development was done with [BelgiumTSC_Training (171.3MBytes)](https://btsd.ethz.ch/shareddata/BelgiumTSC/BelgiumTSC_Training.zip) and [BelgiumTSC_Testing (76.5MBytes)](https://btsd.ethz.ch/shareddata/BelgiumTSC/BelgiumTSC_Testing.zip) from [Belgium Traffic Sign Dataset](https://btsd.ethz.ch/shareddata/), but most images should work. 
 
 ## Run
-To build the Docker image, train a model, convert that model to a 32-bit OpenVINO format, and run a sample inference on `infer/*`, simply call
+To build the Docker image, train a model, convert that model to a 32-bit OpenVINO format, and run a classification on images in `data/infer/*`, simply call
 ```
 make all
 ```
@@ -77,7 +77,7 @@ python3 -c "from openvino.inference_engine import IENetwork, IEPlugin"
 ### Conduct Inference
 Once the files have been copeid from `models/openvino` to the Raspberry Pi, conduct inference on a single image with:
 ```
-python infer/classification_sample.py -m <path to model>.xml -nt 5 -i <path to test image> -d MYRIAD
+python classify/classification_sample.py -m <path to model>.xml -nt 5 -i <path to test image> -d MYRIAD
 ```
 
 # Manual Installation
@@ -183,7 +183,7 @@ Input channels are reversed (bgr) and that caused me a lot of suffering until I 
 ### Conduct Inference
 Inference requires both the `.bin` and `.xml` files to be in the same directory.
 ```
-python infer/classification_sample.py -m <path to model>.xml -nt 5 -i <path to test image> -d MYRIAD
+python classify/classification_sample.py -m <path to model>.xml -nt 5 -i <path to test image> -d MYRIAD
 ```
 On the desktop inference should work with MYRIAD or CPU for the `-d` option
 
