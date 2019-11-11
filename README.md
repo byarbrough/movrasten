@@ -25,7 +25,7 @@ data
 ```
 Makefile does not yet implement automated testing, so it is fine if `data/test` is empty.
 
-Also place one or more images directly into the `infer` folder, as this is what will be used for the demo.
+Also place one or more images directly into the `data/infer` folder, as this is what will be used for the demo.
 
 Development was done with [BelgiumTSC_Training (171.3MBytes)](https://btsd.ethz.ch/shareddata/BelgiumTSC/BelgiumTSC_Training.zip) and [BelgiumTSC_Testing (76.5MBytes)](https://btsd.ethz.ch/shareddata/BelgiumTSC/BelgiumTSC_Testing.zip) from [Belgium Traffic Sign Dataset](https://btsd.ethz.ch/shareddata/), but most images should work. 
 
