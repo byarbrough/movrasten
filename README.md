@@ -25,7 +25,7 @@ data
 Makefile does not yet implement automated testing, so it is fine if `data/test` is empty.
 
 ### Run
-To build the Docker image, train a model, and convert that model to a 32-bit OpenVINO format, simply call
+To build the Docker image, train a model, and convert that model to a 32-bit OpenVINO format and run a sample inference on `infer/*`, simply call
 ```
 make all
 ```
