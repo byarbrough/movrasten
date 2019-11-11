@@ -65,7 +65,7 @@ convert_32:
 
 infer:
 	sudo docker exec $(APP) /bin/bash -c \
-	". /opt/intel/openvino/bin/setupvars.sh && python infer/classification_sample.py -m /app/models/openvino/$(MOD).xml -nt 5 -i /app/data/infer/* -d CPU"
+	". /opt/intel/openvino/bin/setupvars.sh && python classify/classification_sample.py -m /app/models/openvino/$(MOD).xml -nt 5 -i /app/data/infer/* -d CPU"
 
 prune:
 	sudo docker system prune -af
