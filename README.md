@@ -1,15 +1,16 @@
 # Movrasten
-*Mo*idius *Ras*berry Pi and *Ten*sorflow
-Train a Tensorflow Keras Deep Neural Network model and conduct inference on a an edge device (Raspberry Pi) with hardware acceleration from the Intel Nueral Compute Stick 2. How's that for buzzword bingo!
+*Mov*idius *Ras*berry Pi and *Ten*sorflow
+Train a Tensorflow Keras deep neural network and conduct image classification on a an edge device (Raspberry Pi) with hardware acceleration from the Intel Nueral Compute Stick 2.
 
 # Run with Docker
 By using Docker, training and conversion of models can be done with simple `make` commands.
 
-### Setup
+## Setup
 Download the repository
 ```
 git clone https://github.com/byarbrough/movrasten.git && cd movrasten
 ```
+### Dataset
 Place your images in to the `data/train` folder. Each class of images should be in its own folder. For example, `tree` on a three-class dataset should yield.
 ```
 data
@@ -24,8 +25,12 @@ data
 ```
 Makefile does not yet implement automated testing, so it is fine if `data/test` is empty.
 
-### Run
-To build the Docker image, train a model, and convert that model to a 32-bit OpenVINO format and run a sample inference on `infer/*`, simply call
+Also place one or more images directly into the `data/infer` folder, as this is what will be used for the demo.
+
+Development was done with [BelgiumTSC_Training (171.3MBytes)](https://btsd.ethz.ch/shareddata/BelgiumTSC/BelgiumTSC_Training.zip) and [BelgiumTSC_Testing (76.5MBytes)](https://btsd.ethz.ch/shareddata/BelgiumTSC/BelgiumTSC_Testing.zip) from [Belgium Traffic Sign Dataset](https://btsd.ethz.ch/shareddata/), but most images should work. 
+
+## Run
+To build the Docker image, train a model, convert that model to a 32-bit OpenVINO format, and run a sample inference on `infer/*`, simply call
 ```
 make all
 ```
@@ -37,7 +42,7 @@ Keep in mind that an image must first be running (`make run`) before it can be u
 
 The Keras models are saved in `models/` as both `.h5` and `.pb`. The models in OpenVINO format are saved in `modesl/openvino`. If using `make convert_16` for inference on the Raspberry Pi, make sure to copy all three files (`bin`, `.mapping`, `.xml`) to the Pi.
 
-## Raspberry Pi Installation
+# Raspberry Pi Installation
 Minimum version `2019.2.242`. The latest version can be found at the [Intel® Open Source Technology Center](https://download.01.org/opencv/2019/openvinotoolkit/)
 Follow [Install OpenVINO™ toolkit for Raspbian* OS](https://docs.openvinotoolkit.org/latest/_docs_install_guides_installing_openvino_raspbian.html)
 
