@@ -44,11 +44,12 @@ help:
 	@echo '  run 		run docker $(IMG) as $(APP) for current user: $(HOST_USER)(uid=$(HOST_UID))'
 	@echo '  shell		open interactive shell to stopped container $(APP) for current user'
 	@echo '  stop		stop $(APP)'
+	@echo '  start		start $(APP)'
 	@echo '  test 		test the model with tensorflow on data in data/test'
 	@echo '  train		train a model on data in the data/train directory'
 	@echo ''
 
-all: | build run train convert_32
+all: | build run train convert_32 infer
 
 build:
 	sudo docker build -t $(IMG) .
@@ -63,7 +64,8 @@ convert_32:
 	sudo docker exec -w /app/models/openvino $(APP) python $(MO_TF) --input_model /app/models/$(MOD).pb -b $(BATCH_SIZE) --data_type FP32 --scale 255 --reverse_input_channels;
 
 infer:
-	sudo docker exec $(APP) python infer/classification_sample.py -m /app/models/openvino/$(MOD).xml -nt 5 -i /app/data/infer/ -d CPU
+	sudo docker exec $(APP) /bin/bash -c \
+	". /opt/intel/openvino/bin/setupvars.sh && python infer/classification_sample.py -m /app/models/openvino/$(MOD).xml -nt 5 -i /app/data/infer/* -d CPU"
 
 prune:
 	sudo docker system prune -af
@@ -74,8 +76,14 @@ rebuild:
 run:
 	sudo docker run -u $(HOST_UID):$(HOST_GID) -it -d --mount type=bind,source=${CURDIR},destination=/app,consistency=cached --name $(APP) $(IMG);
 
+run_root:
+	sudo docker run -it -d --mount type=bind,source=${CURDIR},destination=/app,consistency=cached --name $(APP) $(IMG);
+
 shell:
 	sudo docker start -i $(APP)
+
+start:
+	sudo docker start $(APP)
 
 stop:
 	sudo docker stop $(APP)
